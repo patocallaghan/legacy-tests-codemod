@@ -1,4 +1,4 @@
-export function addImport(j, code, importName, sourceName) {
+function addImport(j, code, importName, sourceName) {
   let hasImport = false;
   code = j(code)
     .find(j.ImportDeclaration, { source: { value: sourceName } })
@@ -28,16 +28,22 @@ export function addImport(j, code, importName, sourceName) {
   }
 }
 
-export function removeImport(j, code, sourceName) {
+function removeImport(j, code, sourceName) {
   return j(code)
     .find(j.ImportDeclaration, { source: { value: sourceName } })
     .remove()
     .toSource();
 }
 
-export function removeSpecificImport(j, code, sourceName) {
+function removeSpecificImport(j, code, sourceName) {
   return j(code)
     .find(j.ImportSpecifier, { local: { name: sourceName } })
     .remove()
     .toSource();
 }
+
+module.exports = {
+  addImport,
+  removeImport,
+  removeSpecificImport,
+};
