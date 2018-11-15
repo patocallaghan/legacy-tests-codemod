@@ -2,8 +2,9 @@
   "name": "legacy-tests-codemod",
   "version": "0.1.0",
   "scripts": {
-    "test": "codemod-cli test",
-    "update-docs": "codemod-cli update-docs"
+    "test": "node_modules/.bin/codemod-cli test",
+    "test:watch": "node_modules/.bin/codemod-cli test --watch",
+    "update-docs": "node_modules/.bin/codemod-cli update-docs"
   },
   "bin": "./bin/cli.js",
   "keywords": [
