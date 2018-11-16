@@ -1,4 +1,4 @@
-# legacy-tests-codemod
+# legacy-tests-codemod [![Build Status](https://travis-ci.org/patocallaghan/legacy-tests-codemod.svg?branch=master)](https://travis-ci.org/patocallaghan/legacy-tests-codemod)
 
 
 A collection of codemod's for legacy-tests-codemod.
