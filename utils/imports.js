@@ -42,8 +42,32 @@ function removeSpecificImport(j, code, sourceName) {
     .toSource();
 }
 
+function replaceImportedFunction(j, code, name, newName, newSource) {
+  code = j(code)
+    .find(j.CallExpression, {
+      callee: {
+        type: 'MemberExpression',
+        object: {
+          type: 'ThisExpression',
+        },
+        property: {
+          name: name,
+        },
+      },
+    })
+    .forEach(path => {
+      j(path).replaceWith(j.callExpression(j.identifier(newName), path.value.arguments.reverse()));
+    })
+    .toSource();
+  if (j(code).find(j.Identifier, { name: newName }).length) {
+    code = addImport(j, code, newName, newSource);
+  }
+  return code;
+}
+
 module.exports = {
   addImport,
   removeImport,
   removeSpecificImport,
+  replaceImportedFunction,
 };

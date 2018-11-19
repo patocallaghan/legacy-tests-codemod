@@ -1,5 +1,17 @@
 const { getParser } = require('codemod-cli').jscodeshift;
-const { addImport, removeImport, removeSpecificImport } = require('../../utils/imports');
+const {
+  addImport,
+  removeImport,
+  removeSpecificImport,
+  replaceImportedFunction,
+} = require('../../utils/imports');
+const { replaceConst } = require('../../utils/const');
+const { replaceIdentifier, hasIdentifierCalled } = require('../../utils/identifier');
+const {
+  findFunction,
+  replaceContextualFunctionWithExplicitlyImportedFunction,
+} = require('../../utils/function');
+const { getNotificationServiceFunctions } = require('../../utils/notifications');
 
 // module.exports = function transformer(file, api) {
 //   const j = getParser(api);
@@ -20,7 +32,6 @@ module.exports = function transformer(file, api) {
   const j = getParser(api);
 
   let code = file.source;
-  
 
   // remove unused imports
   code = removeImport(j, code, 'embercom/tests/helpers/component-integration-testing');
@@ -28,29 +39,50 @@ module.exports = function transformer(file, api) {
   code = addImport(j, code, 'module', 'qunit');
   code = addImport(j, code, 'test', 'qunit');
   // template and selectors
-  code = replaceConsts(j, code, 'TEMPLATE');
-  code = replaceConsts(j, code, 'SELECTORS');
+  code = replaceConst(j, code, 'TEMPLATE');
+  code = replaceConst(j, code, 'SELECTORS');
   // setupRenderingTest
   code = replaceIdentifier(j, code, 'setupTest', 'setupRenderingTest');
   code = addImport(j, code, 'setupRenderingTest', 'ember-qunit');
   // test helpers
   code = replaceIdentifier(j, code, 'keyEvent', 'triggerKeyEvent');
   // feature flags
-  code = replaceImportedFunction(j, code, 'turnOnFeatures', 'turnOnFeaturesForApp', 'embercom/tests/helpers/feature-flag-integration-test-helpers');
-  code = replaceImportedFunction(j, code, 'turnOffFeatures', 'turnOffFeaturesForApp', 'embercom/tests/helpers/feature-flag-integration-test-helpers');
-  code = replaceImportedFunction(j, code, 'turnOnFeature', 'turnOnFeatureForApp', 'embercom/tests/helpers/feature-flag-integration-test-helpers');
-  code = replaceImportedFunction(j, code, 'turnOffFeature', 'turnOffFeatureForApp', 'embercom/tests/helpers/feature-flag-integration-test-helpers');
+  code = replaceImportedFunction(
+    j,
+    code,
+    'turnOnFeatures',
+    'turnOnFeaturesForApp',
+    'embercom/tests/helpers/feature-flag-integration-test-helpers',
+  );
+  code = replaceImportedFunction(
+    j,
+    code,
+    'turnOffFeatures',
+    'turnOffFeaturesForApp',
+    'embercom/tests/helpers/feature-flag-integration-test-helpers',
+  );
+  code = replaceImportedFunction(
+    j,
+    code,
+    'turnOnFeature',
+    'turnOnFeatureForApp',
+    'embercom/tests/helpers/feature-flag-integration-test-helpers',
+  );
+  code = replaceImportedFunction(
+    j,
+    code,
+    'turnOffFeature',
+    'turnOffFeatureForApp',
+    'embercom/tests/helpers/feature-flag-integration-test-helpers',
+  );
 
   // app service
   code = replaceContextualFunctionWithExplicitlyImportedFunction(
     j,
     code,
     'mockAppServiceWithApp',
-    [
-      j.thisExpression(),
-      j.identifier('app'),
-    ],
-    'embercom/tests/helpers/mock'
+    [j.thisExpression(), j.identifier('app')],
+    'embercom/tests/helpers/mock',
   );
 
   // attribute service
@@ -58,30 +90,25 @@ module.exports = function transformer(file, api) {
     j,
     code,
     'mockAttributeServiceWithApp',
-    [
-      j.thisExpression(),
-      j.identifier('app'),
-    ],
-    'embercom/tests/helpers/mock'
+    [j.thisExpression(), j.identifier('app')],
+    'embercom/tests/helpers/mock',
   );
 
   // app model with data
   code = j(code)
     .find(j.CallExpression, {
-        callee: {
-          type: 'MemberExpression',
-          object: {
-            type: 'ThisExpression',
-          },
-          property: {
-            name: 'getAppModelWithData',
-          },
+      callee: {
+        type: 'MemberExpression',
+        object: {
+          type: 'ThisExpression',
         },
+        property: {
+          name: 'getAppModelWithData',
+        },
+      },
     })
     .forEach(path => {
-      j(path).replaceWith(
-          j.callExpression(j.identifier('getAppModelWithData'), []),
-      );
+      j(path).replaceWith(j.callExpression(j.identifier('getAppModelWithData'), []));
     })
     .toSource();
   if (j(code).find(j.Identifier, { name: 'getAppModelWithData' }).length) {
@@ -92,27 +119,29 @@ module.exports = function transformer(file, api) {
   if (j(code).find(j.Literal, { value: 'ember-data-factory-guy' }).length) {
     code = addImport(j, code, 'setupFactoryGuy', 'ember-data-factory-guy');
     code = removeSpecificImport(j, code, 'manualSetup');
-    code = findFunction(j, code, 'manualSetup').remove().toSource();
-    code = findFunction(j, code, 'setupFactoryGuy').remove().toSource();
+    code = findFunction(j, code, 'manualSetup')
+      .remove()
+      .toSource();
+    code = findFunction(j, code, 'setupFactoryGuy')
+      .remove()
+      .toSource();
     code = j(code)
-            .find(j.ExpressionStatement, {
-            expression: {
-              type: 'CallExpression',
-              callee: {
-                type: 'Identifier',
-                name: 'setupRenderingTest',
-              },
-            },
-          })
-          .forEach(path => {
-          // hacky way to avoid https://github.com/facebook/jscodeshift/issues/185
-          j(path).replaceWith(
-            j.expressionStatement(
-              j.identifier('setupRenderingTest(hooks);\nsetupFactoryGuy(hooks)'),
-            ),
-          );
-        })
-      	.toSource();
+      .find(j.ExpressionStatement, {
+        expression: {
+          type: 'CallExpression',
+          callee: {
+            type: 'Identifier',
+            name: 'setupRenderingTest',
+          },
+        },
+      })
+      .forEach(path => {
+        // hacky way to avoid https://github.com/facebook/jscodeshift/issues/185
+        j(path).replaceWith(
+          j.expressionStatement(j.identifier('setupRenderingTest(hooks);\nsetupFactoryGuy(hooks)')),
+        );
+      })
+      .toSource();
   }
 
   // rendering
@@ -138,45 +167,57 @@ module.exports = function transformer(file, api) {
         );
       })
       .toSource();
-    
-    console.log(findFunction(j, code, 'renderComponent'));
 
-    code = findFunction(j, code, 'renderComponent').forEach(path => {
-      j(path).replaceWith(j.expressionStatement(j.awaitExpression(j.callExpression(j.identifier('renderComponent'), path.value.expression.arguments))));
-      j(path)
-        .closest(j.FunctionExpression)
-        .forEach(path => {
-        path.value.async = false;
-      });
-    }).toSource();
-    
-    code = j(code).find(j.FunctionDeclaration, { id: { type: 'Identifier', name: 'renderComponent' } }).forEach(path => {
-      path.value.async = false;
-      j(path).find(j.ReturnStatement, {
-        argument: {
-          type: 'AwaitExpression',
-          argument: {
-            type: 'CallExpression',
-            callee: {
-              type: "Identifier",
-              name: "render",
-            },
-          },
-        }
-      })
+    code = findFunction(j, code, 'renderComponent')
       .forEach(path => {
-        j(path).replaceWith(j.returnStatement(j.callExpression(j.identifier('render'), path.value.argument.argument.arguments)))
+        j(path).replaceWith(
+          j.expressionStatement(
+            j.awaitExpression(
+              j.callExpression(j.identifier('renderComponent'), path.value.expression.arguments),
+            ),
+          ),
+        );
+        j(path)
+          .closest(j.FunctionExpression)
+          .forEach(path => {
+            path.value.async = false;
+          });
+      })
+      .toSource();
+
+    code = j(code)
+      .find(j.FunctionDeclaration, { id: { type: 'Identifier', name: 'renderComponent' } })
+      .forEach(path => {
         path.value.async = false;
-      });
-    }).toSource()
+        j(path)
+          .find(j.ReturnStatement, {
+            argument: {
+              type: 'AwaitExpression',
+              argument: {
+                type: 'CallExpression',
+                callee: {
+                  type: 'Identifier',
+                  name: 'render',
+                },
+              },
+            },
+          })
+          .forEach(path => {
+            j(path).replaceWith(
+              j.returnStatement(
+                j.callExpression(j.identifier('render'), path.value.argument.argument.arguments),
+              ),
+            );
+            path.value.async = false;
+          });
+      })
+      .toSource();
   } else {
-  console.log(renderCollection.length)
     code = renderCollection
       .forEach(path => {
         j(path)
           .closest(j.FunctionDeclaration)
           .forEach(path => {
-          
             path.value.async = true;
           });
         j(path).replaceWith(
@@ -241,149 +282,40 @@ module.exports = function transformer(file, api) {
   // notification service
   let notificationServiceFunctionCalls = getNotificationServiceFunctions(j, code);
   if (notificationServiceFunctionCalls.length) {
-    code = addImport(j, code, 'setupNotificationsService', 'embercom/tests/helpers/services/notifications');
-    code = j(code).find(j.ExpressionStatement, { expression: { type: "CallExpression", callee: {type: "Identifier", name: "setupRenderingTest"}} })
-    		.forEach(path => {
-      			j(path).insertAfter(j.expressionStatement(j.callExpression(j.identifier('setupNotificationsService'),[])));
-    		}).toSource();
-
-    code = notificationServiceFunctionCalls.forEach(path => {
-      path.value.expression.arguments.unshift(j.identifier('assert'));
-      j(path).replaceWith(
-        j.expressionStatement(
-          j.callExpression(
-            j.identifier(path.value.expression.callee.property.name),
-            path.value.expression.arguments,
-          )
-        )
-      )
-    }).toSource();
-  }
-
-  return code;
-}
-
-function hasFunctionCalled(j, code, functionName) {
-  return findFunction(j, code, functionName).length;
-}
-
-function hasIdentifierCalled(j, code, identifierName) {
-  return findIdentifier(j, code, identifierName).length;
-}
-
-function findFunction(j, code, functionName) {
-  return j(code).find(j.ExpressionStatement, {
-    expression: {
-      type: 'CallExpression',
-      callee: {
-        type: 'Identifier',
-        name: functionName,
-      },
-    },
-  });
-}
-
-function findIdentifier(j, code, identifierName) {
-  return j(code).find(j.Identifier, { name: identifierName });
-} 
-
-function replaceConsts(j, code, constantName) {
-  code = j(code)
-    .find(j.VariableDeclarator, { id: { name: constantName } })
-    .forEach(path => {
-      j(path)
-        .closest(j.VariableDeclaration)
-        .forEach(path => {
-          path.value.kind = 'let';
-        });
-    })
-    .toSource();
-  return j(code)
-    .find(j.Identifier, { name: constantName })
-    .forEach(path => {
-      j(path).replaceWith(j.identifier(constantName.toLowerCase()));
-    })
-    .toSource();
-}
-
-function replaceImportedFunction(j, code, name, newName, newSource) {
-  code = j(code)
-    .find(j.CallExpression, {
-        callee: {
-          type: 'MemberExpression',
-          object: {
-            type: 'ThisExpression',
-          },
-          property: {
-            name: name,
-          },
+    code = addImport(
+      j,
+      code,
+      'setupNotificationsService',
+      'embercom/tests/helpers/services/notifications',
+    );
+    code = j(code)
+      .find(j.ExpressionStatement, {
+        expression: {
+          type: 'CallExpression',
+          callee: { type: 'Identifier', name: 'setupRenderingTest' },
         },
-    })
-    .forEach(path => {
-      j(path).replaceWith(
-          j.callExpression(j.identifier(newName), path.value.arguments.reverse()),
-      );
-    })
-    .toSource();
-  if (j(code).find(j.Identifier, { name: newName }).length) {
-    code = addImport(j, code, newName, newSource);
+      })
+      .forEach(path => {
+        j(path).insertAfter(
+          j.expressionStatement(j.callExpression(j.identifier('setupNotificationsService'), [])),
+        );
+      })
+      .toSource();
+
+    code = notificationServiceFunctionCalls
+      .forEach(path => {
+        path.value.expression.arguments.unshift(j.identifier('assert'));
+        j(path).replaceWith(
+          j.expressionStatement(
+            j.callExpression(
+              j.identifier(path.value.expression.callee.property.name),
+              path.value.expression.arguments,
+            ),
+          ),
+        );
+      })
+      .toSource();
   }
+
   return code;
-}
-
-function replaceContextualFunctionWithExplicitlyImportedFunction(j, code, functionName, functionArguments, importSource) {
-  var code = j(code)
-    .find(j.ExpressionStatement, {
-      expression: {
-        type: 'CallExpression',
-        callee: {
-          type: 'MemberExpression',
-          object: {
-            type: 'ThisExpression',
-          },
-          property: {
-            name: functionName,
-          },
-        },
-      },
-    })
-    .forEach(path => {
-      j(path).replaceWith(
-        j.expressionStatement(
-          j.callExpression(j.identifier(functionName), functionArguments),
-        ),
-      );
-    })
-    .toSource();
-  if (j(code).find(j.Identifier, { name: functionName }).length) {
-    code = addImport(j, code, functionName, importSource);
-  }
-  return code;
-}
-
-function replaceIdentifier(j, code, oldName, newName) {
-  return j(code)
-    .find(j.Identifier, { name: oldName })
-    .forEach(path => {
-      j(path).replaceWith(j.identifier(newName));
-    })
-    .toSource();
-}
-
-function getNotificationServiceFunctions(j, code) {
-  return j(code)
-    .find(j.ExpressionStatement, {
-  		expression: {
-        	type: "CallExpression",
-          	callee: {
-              type: "MemberExpression",
-              property: {
-                  type: "Identifier",
-              },
-            }
-        }
-  	})
-  	.filter(path => {
-    	return path.value.expression.callee.property.name.match(/assert.*Notification/) != null;
-  	});
-}
+};
