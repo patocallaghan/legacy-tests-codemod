@@ -8,26 +8,11 @@ const {
 const { replaceConst } = require('../../utils/const');
 const { replaceIdentifier, hasIdentifierCalled } = require('../../utils/identifier');
 const {
-  findFunction,
+  findExpressionStatementCallExpression,
   replaceContextualFunctionWithExplicitlyImportedFunction,
 } = require('../../utils/function');
 const { getNotificationServiceFunctions } = require('../../utils/notifications');
 
-// module.exports = function transformer(file, api) {
-//   const j = getParser(api);
-
-//   return j(file.source)
-//     .find(j.Identifier)
-//     .forEach(path => {
-//       path.node.name = path.node.name
-//         .split('')
-//         .reverse()
-//         .join('');
-//     })
-//     .toSource();
-// }
-
-// Press ctrl+space for code completion
 module.exports = function transformer(file, api) {
   const j = getParser(api);
 
@@ -119,10 +104,10 @@ module.exports = function transformer(file, api) {
   if (j(code).find(j.Literal, { value: 'ember-data-factory-guy' }).length) {
     code = addImport(j, code, 'setupFactoryGuy', 'ember-data-factory-guy');
     code = removeSpecificImport(j, code, 'manualSetup');
-    code = findFunction(j, code, 'manualSetup')
+    code = findExpressionStatementCallExpression(j, code, 'manualSetup')
       .remove()
       .toSource();
-    code = findFunction(j, code, 'setupFactoryGuy')
+    code = findExpressionStatementCallExpression(j, code, 'setupFactoryGuy')
       .remove()
       .toSource();
     code = j(code)
@@ -168,7 +153,7 @@ module.exports = function transformer(file, api) {
       })
       .toSource();
 
-    code = findFunction(j, code, 'renderComponent')
+    code = findExpressionStatementCallExpression(j, code, 'renderComponent')
       .forEach(path => {
         j(path).replaceWith(
           j.expressionStatement(
