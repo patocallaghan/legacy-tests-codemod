@@ -1,7 +1,7 @@
 import { setupRenderingTest } from 'ember-qunit';
 import { setupFactoryGuy, manualSetup } from 'ember-data-factory-guy';
 
-module('some module', function(hook) {
+module('some module', function(hooks) {
   setupRenderingTest(hooks);
   setupFactoryGuy(hooks);
 
