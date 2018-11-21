@@ -1,9 +1,10 @@
 import { setupApplicationTest } from 'ember-qunit';
+import { click } from '@ember/test-helpers';
 
 module('some module', function(hooks) {
   setupApplicationTest(hooks);
 
-  test('test', function(assert) {
-    assert.ok('true');
+  test('clickIgnoreTimers', async function(assert) {
+    await click(selector);
   });
 });
