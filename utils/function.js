@@ -1,10 +1,10 @@
 const { addImport } = require('./imports');
 
 function hasFunctionCalled(j, code, functionName) {
-  return findFunction(j, code, functionName).length;
+  return findExpressionStatementCallExpression(j, code, functionName).length;
 }
 
-function findFunction(j, code, functionName) {
+function findExpressionStatementCallExpression(j, code, functionName) {
   return j(code).find(j.ExpressionStatement, {
     expression: {
       type: 'CallExpression',
@@ -14,6 +14,15 @@ function findFunction(j, code, functionName) {
       },
     },
   });
+}
+
+function findCallExpression(j, code, functionName) {
+  return j(code).find(j.CallExpression, {
+      callee: {
+        type: 'Identifier',
+        name: functionName,
+      },
+    });
 }
 
 function replaceContextualFunctionWithExplicitlyImportedFunction(
@@ -52,6 +61,7 @@ function replaceContextualFunctionWithExplicitlyImportedFunction(
 
 module.exports = {
   hasFunctionCalled,
-  findFunction,
+  findCallExpression,
+  findExpressionStatementCallExpression,
   replaceContextualFunctionWithExplicitlyImportedFunction,
 };
