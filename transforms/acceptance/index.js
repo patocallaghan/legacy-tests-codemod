@@ -24,6 +24,27 @@ module.exports = function transformer(file, api) {
     })
     .toSource();
 
+  // register and inject helpers
+  code = j(file.source)
+  .find(j.MemberExpression, {
+    object: {
+      object: {
+        type: 'ThisExpression',
+      },
+      property: {
+        name: 'application',
+      },
+    },
+  })
+  .forEach(path => {
+    if (path.value.property.name === 'register') {
+      path.value.object.property.name = 'owner';
+    } else if (path.value.property.name === 'inject') {
+      j(path.parent).remove();
+    }
+  })
+  .toSource();
+
 
 
   return code;
