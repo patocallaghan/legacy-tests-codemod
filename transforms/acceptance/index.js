@@ -1,12 +1,12 @@
 const { getParser } = require('codemod-cli').jscodeshift;
 const { exampleTransform } = require('../../utils/acceptance/example-transform');
 const {
-  removeImport,
+  removeImport, addImport
 } = require('../../utils/imports');
 const {
   findCallExpression,
 } = require('../../utils/function');
-const { replaceIdentifier } = require('../../utils/identifier');
+const { replaceIdentifier, replaceIdentifierWithAwaitIdentifier } = require('../../utils/identifier');
 
 module.exports = function transformer(file, api) {
   const j = getParser(api);
@@ -25,7 +25,7 @@ module.exports = function transformer(file, api) {
     .toSource();
 
   // register and inject helpers
-  code = j(file.source)
+  code = j(code)
   .find(j.MemberExpression, {
     object: {
       object: {
@@ -45,6 +45,26 @@ module.exports = function transformer(file, api) {
   })
   .toSource();
 
+
+  // click-ignore-timer to await click
+  code = ((internalCode) => {
+    let exists;
+    internalCode = j(internalCode)
+    .find(j.Identifier, { name: 'clickIgnoreTimers' })
+    .forEach(path => {
+      exists = true;
+      j(path).replaceWith(j.identifier('await click'));
+    })
+    .closest(j.FunctionExpression).forEach(path => {
+      path.value.async = true;
+    }).toSource();
+
+    if (exists) {
+      internalCode = addImport(j, internalCode, 'click', '@ember/test-helpers');
+    }
+
+    return internalCode;
+  })(code);
 
 
   return code;
