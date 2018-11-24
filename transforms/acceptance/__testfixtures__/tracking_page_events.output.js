@@ -1,14 +1,10 @@
 import { setupApplicationTest } from 'ember-qunit';
+import { assertTrackEvent, setupIntercomEventService, assertTrackAnalyticsEvent } from "embercom/tests/helpers/services/intercom-event";
 import { visit } from '@ember/test-helpers';
-import {
-  assertTrackEvent,
-  assertTrackAnalyticsEvent,
-  setupIntercomEventService,
-} from 'embercom/tests/helpers/services/intercom-event';
 
 module('some module', function(hooks) {
-  setupApplicationTest(hooks);
   setupIntercomEventService(hooks);
+  setupApplicationTest(hooks);
 
   test('Visitng developer sign up tracks an event', async function(assert) {
     await visit('/developer-signup');

@@ -1,7 +1,8 @@
 const { getParser } = require('codemod-cli').jscodeshift;
 const { exampleTransform } = require('../../utils/acceptance/example-transform');
+const { trackingPageEventMigration } = require('./tracking_page_event_migration');
 const {
-  removeImport, addImport
+  removeImport, addImport, removeSpecificImport
 } = require('../../utils/imports');
 const {
   findCallExpression,
@@ -66,6 +67,8 @@ module.exports = function transformer(file, api) {
     return internalCode;
   })(code);
 
+  // track_page_events.input migration
+  code = trackingPageEventMigration(j, code);
 
   return code;
 };
