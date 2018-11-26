@@ -1,18 +1,18 @@
 import { setupApplicationTest } from 'ember-qunit';
+import { assertTrackEvent, setupIntercomEventService, assertTrackAnalyticsEvent } from "embercom/tests/helpers/services/intercom-event";
 import { visit } from '@ember/test-helpers';
 
 module('some module', function(hooks) {
+  setupIntercomEventService(hooks);
   setupApplicationTest(hooks);
 
   test('Visitng developer sign up tracks an event', async function(assert) {
-    this.capturesTrackingEvents();
-
     await visit('/developer-signup');
-    this.assertTrackAnalyticsEvent(assert, {
+    assertTrackAnalyticsEvent(assert, {
       action: 'viewed',
       object: 'sign_up_page',
       place: 'developer_signup',
     });
-    this.assertTrackEvent(assert, 'viewed_performance_report');
+    assertTrackEvent(assert, 'viewed_performance_report');
   });
 });

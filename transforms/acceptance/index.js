@@ -1,13 +1,9 @@
 const { getParser } = require('codemod-cli').jscodeshift;
 const { exampleTransform } = require('../../utils/acceptance/example-transform');
+const { removeImport, addImport } = require('../../utils/imports');
+const { findCallExpression } = require('../../utils/function');
+const { replaceIdentifier } = require('../../utils/identifier');
 const { trackingPageEventMigration } = require('./tracking_page_event_migration');
-const {
-  removeImport, addImport, removeSpecificImport
-} = require('../../utils/imports');
-const {
-  findCallExpression,
-} = require('../../utils/function');
-const { replaceIdentifier, replaceIdentifierWithAwaitIdentifier } = require('../../utils/identifier');
 
 module.exports = function transformer(file, api) {
   const j = getParser(api);
@@ -19,35 +15,34 @@ module.exports = function transformer(file, api) {
 
   // fetching store
   code = removeImport(j, code, 'embercom/lib/container-lookup');
-  code = findCallExpression(j, code, "getEmberDataStore")
+  code = findCallExpression(j, code, 'getEmberDataStore')
     .forEach(path => {
-      j(path).replaceWith(j.identifier("this.owner.lookup('service:store')"))
+      j(path).replaceWith(j.identifier("this.owner.lookup('service:store')"));
     })
     .toSource();
 
   // register and inject helpers
   code = j(code)
-  .find(j.MemberExpression, {
-    object: {
+    .find(j.MemberExpression, {
       object: {
-        type: 'ThisExpression',
+        object: {
+          type: 'ThisExpression',
+        },
+        property: {
+          name: 'application',
+        },
       },
-      property: {
-        name: 'application',
-      },
-    },
-  })
-  .forEach(path => {
-    if (path.value.property.name === 'register') {
-      path.value.object.property.name = 'owner';
-    } else if (path.value.property.name === 'inject') {
-      j(path.parent).remove();
-    }
-  })
-  .toSource();
+    })
+    .forEach(path => {
+      if (path.value.property.name === 'register') {
+        path.value.object.property.name = 'owner';
+      } else if (path.value.property.name === 'inject') {
+        j(path.parent).remove();
+      }
+    })
+    .toSource();
 
-
-  // click-ignore-timer to await click
+   // click-ignore-timer to await click
   code = ((internalCode) => {
     let exists;
     internalCode = j(internalCode)
@@ -59,12 +54,10 @@ module.exports = function transformer(file, api) {
     .closest(j.FunctionExpression).forEach(path => {
       path.value.async = true;
     }).toSource();
-
-    if (exists) {
+      if (exists) {
       internalCode = addImport(j, internalCode, 'click', '@ember/test-helpers');
     }
-
-    return internalCode;
+      return internalCode;
   })(code);
 
   // track_page_events.input migration

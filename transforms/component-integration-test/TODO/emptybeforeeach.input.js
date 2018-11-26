@@ -3,8 +3,8 @@ import {
   componentIntegrationTest,
 } from 'embercom/tests/helpers/component-integration-testing';
 
-module("Team Messages | Component | campaigns/user-list", function(hooks) {
+module('Team Messages | Component | campaigns/user-list', function(hooks) {
   setupTest(hooks);
 
-  hooks.beforeEach(function() {})
+  hooks.beforeEach(function() {});
 });
