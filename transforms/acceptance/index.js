@@ -42,18 +42,20 @@ module.exports = function transformer(file, api) {
     })
     .toSource();
 
-   // click-ignore-timer to await click
-  code = ((internalCode) => {
+  // click-ignore-timer to await click
+  code = (internalCode => {
     let exists;
     internalCode = j(internalCode)
-    .find(j.Identifier, { name: 'clickIgnoreTimers' })
-    .forEach(path => {
-      exists = true;
-      j(path).replaceWith(j.identifier('await click'));
-    })
-    .closest(j.FunctionExpression).forEach(path => {
-      path.value.async = true;
-    }).toSource();
+      .find(j.Identifier, { name: 'clickIgnoreTimers' })
+      .forEach(path => {
+        exists = true;
+        j(path).replaceWith(j.identifier('await click'));
+      })
+      .closest(j.FunctionExpression)
+      .forEach(path => {
+        path.value.async = true;
+      })
+      .toSource();
     if (exists) {
       internalCode = addImport(j, internalCode, 'click', '@ember/test-helpers');
     }
@@ -62,6 +64,24 @@ module.exports = function transformer(file, api) {
 
   // track_page_events.input migration
   code = trackingPageEventMigration(j, code);
+
+  // test helpers
+  code = replaceIdentifier(j, code, 'keyEvent', 'triggerKeyEvent');
+  code = j(code)
+    .find(j.Literal, { value: 'ember-test-helpers' })
+    .forEach(path => {
+      j(path).replaceWith(j.literal('@ember/test-helpers'));
+    })
+    .toSource();
+  j(code)
+    .find(j.ImportDeclaration, { source: { value: 'ember-native-dom-helpers' } })
+    .forEach(path => {
+      path.value.specifiers.forEach(specifier => {
+        code = addImport(j, code, specifier.local.name, '@ember/test-helpers');
+      });
+    })
+    .toSource();
+  code = removeImport(j, code, 'ember-native-dom-helpers');
 
   return code;
 };
