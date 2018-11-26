@@ -1,8 +1,9 @@
 const { getParser } = require('codemod-cli').jscodeshift;
 const { exampleTransform } = require('../../utils/acceptance/example-transform');
-const { removeImport } = require('../../utils/imports');
+const { removeImport, addImport } = require('../../utils/imports');
 const { findCallExpression } = require('../../utils/function');
 const { replaceIdentifier } = require('../../utils/identifier');
+const { trackingPageEventMigration } = require('./tracking_page_event_migration');
 
 module.exports = function transformer(file, api) {
   const j = getParser(api);
@@ -40,6 +41,27 @@ module.exports = function transformer(file, api) {
       }
     })
     .toSource();
+
+   // click-ignore-timer to await click
+  code = ((internalCode) => {
+    let exists;
+    internalCode = j(internalCode)
+    .find(j.Identifier, { name: 'clickIgnoreTimers' })
+    .forEach(path => {
+      exists = true;
+      j(path).replaceWith(j.identifier('await click'));
+    })
+    .closest(j.FunctionExpression).forEach(path => {
+      path.value.async = true;
+    }).toSource();
+    if (exists) {
+      internalCode = addImport(j, internalCode, 'click', '@ember/test-helpers');
+    }
+    return internalCode;
+  })(code);
+
+  // track_page_events.input migration
+  code = trackingPageEventMigration(j, code);
 
   return code;
 };

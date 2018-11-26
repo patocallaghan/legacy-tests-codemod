@@ -1,5 +1,5 @@
+import { click } from "@ember/test-helpers";
 import { setupApplicationTest } from 'ember-qunit';
-import { click } from '@ember/test-helpers';
 
 module('some module', function(hooks) {
   setupApplicationTest(hooks);
