@@ -8,7 +8,7 @@ const {
 } = require('../../utils/function');
 const { replaceIdentifier } = require('../../utils/identifier');
 
-module.exports = function transformer(file, api) {
+export default function transformer(file, api) {
   const j = getParser(api);
   let code = file.source;
 
