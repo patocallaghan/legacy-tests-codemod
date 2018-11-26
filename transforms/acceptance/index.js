@@ -54,10 +54,10 @@ module.exports = function transformer(file, api) {
     .closest(j.FunctionExpression).forEach(path => {
       path.value.async = true;
     }).toSource();
-      if (exists) {
+    if (exists) {
       internalCode = addImport(j, internalCode, 'click', '@ember/test-helpers');
     }
-      return internalCode;
+    return internalCode;
   })(code);
 
   // track_page_events.input migration
