@@ -22,9 +22,21 @@ function substituteEvent(j, code, eventName) {
   }).closest(j.CallExpression, {
     callee: { name: 'module' }
   }).forEach(path => {
+    let setupApplicationTestExists =  j(path).find(j.Identifier, { name: 'setupApplicationTest' }).length !== 0;
     let setupExists = j(path).find(j.Identifier, { name: 'setupIntercomEventService' }).length !== 0;
     if (!setupExists) {
-      path.value.arguments[1].body.body.unshift("setupIntercomEventService(hooks);");
+      if (!setupApplicationTestExists) {
+        path.value.arguments[1].body.body.unshift("setupIntercomEventService(hooks);");
+        path.value.arguments[1].body.body.unshift("setupApplicationTest(hooks);");
+      } else {
+        j(path).find(j.CallExpression, {
+        	callee: {
+              name: 'setupApplicationTest'
+            }
+        }).replaceWith(
+         j.identifier("setupApplicationTest(hooks);\nsetupIntercomEventService(hooks)")
+        )
+      }
     }
   }).toSource();
 
