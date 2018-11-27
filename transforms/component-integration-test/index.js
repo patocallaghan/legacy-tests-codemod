@@ -13,6 +13,7 @@ const {
 } = require('../../utils/function');
 const { getNotificationServiceFunctions } = require('../../utils/notifications');
 const { removeEmptyBlock } = require('../../utils/general');
+const { getRenderingCollection, replaceSurroundingContext } = require('../../utils/rendering');
 
 module.exports = function transformer(file, api) {
   const j = getParser(api);
@@ -131,17 +132,8 @@ module.exports = function transformer(file, api) {
   }
 
   // rendering
-  let renderCollection = j(code).find(j.ExpressionStatement, {
-    expression: {
-      type: 'CallExpression',
-      callee: {
-        property: {
-          type: 'Identifier',
-          name: 'render',
-        },
-      },
-    },
-  });
+  code = replaceSurroundingContext(j, code);
+  let renderCollection = getRenderingCollection(j, code);
 
   if (hasIdentifierCalled(j, code, 'renderComponent')) {
     code = renderCollection
