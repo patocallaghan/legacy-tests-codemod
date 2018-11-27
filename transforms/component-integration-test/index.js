@@ -12,6 +12,7 @@ const {
   replaceContextualFunctionWithExplicitlyImportedFunction,
 } = require('../../utils/function');
 const { getNotificationServiceFunctions } = require('../../utils/notifications');
+const { removeEmptyBlock } = require('../../utils/general');
 
 module.exports = function transformer(file, api) {
   const j = getParser(api);
@@ -301,6 +302,9 @@ module.exports = function transformer(file, api) {
       })
       .toSource();
   }
+
+  // general
+  code = removeEmptyBlock(j, code);
 
   return code;
 };
