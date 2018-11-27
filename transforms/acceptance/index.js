@@ -4,6 +4,8 @@ const { removeImport, addImport } = require('../../utils/imports');
 const { findCallExpression } = require('../../utils/function');
 const { replaceIdentifier } = require('../../utils/identifier');
 const { trackingPageEventMigration } = require('./tracking_page_event_migration');
+const { setupFactoryGuy } = require('../../utils/factoryguy');
+const { removeEmptyBlock } = require('../../utils/general');
 
 module.exports = function transformer(file, api) {
   const j = getParser(api);
@@ -82,6 +84,12 @@ module.exports = function transformer(file, api) {
     })
     .toSource();
   code = removeImport(j, code, 'ember-native-dom-helpers');
+
+  // factory guy
+  code = setupFactoryGuy(j, code, 'setupApplicationTest');
+
+  // general
+  code = removeEmptyBlock(j, code);
 
   return code;
 };
