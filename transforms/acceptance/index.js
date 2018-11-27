@@ -4,6 +4,7 @@ const { removeImport, addImport } = require('../../utils/imports');
 const { findCallExpression } = require('../../utils/function');
 const { replaceIdentifier } = require('../../utils/identifier');
 const { trackingPageEventMigration } = require('./tracking_page_event_migration');
+const { replaceEmberTestHelpers, convertEmberTestHelpers } = require('../../utils/test-helpers');
 
 module.exports = function transformer(file, api) {
   const j = getParser(api);
@@ -67,21 +68,8 @@ module.exports = function transformer(file, api) {
 
   // test helpers
   code = replaceIdentifier(j, code, 'keyEvent', 'triggerKeyEvent');
-  code = j(code)
-    .find(j.Literal, { value: 'ember-test-helpers' })
-    .forEach(path => {
-      j(path).replaceWith(j.literal('@ember/test-helpers'));
-    })
-    .toSource();
-  j(code)
-    .find(j.ImportDeclaration, { source: { value: 'ember-native-dom-helpers' } })
-    .forEach(path => {
-      path.value.specifiers.forEach(specifier => {
-        code = addImport(j, code, specifier.local.name, '@ember/test-helpers');
-      });
-    })
-    .toSource();
-  code = removeImport(j, code, 'ember-native-dom-helpers');
+  code = replaceEmberTestHelpers(j, code);
+  code = convertEmberTestHelpers(j, code);
 
   return code;
 };

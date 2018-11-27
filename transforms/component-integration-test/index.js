@@ -12,6 +12,7 @@ const {
   replaceContextualFunctionWithExplicitlyImportedFunction,
 } = require('../../utils/function');
 const { getNotificationServiceFunctions } = require('../../utils/notifications');
+const { replaceEmberTestHelpers, convertEmberTestHelpers } = require('../../utils/test-helpers');
 
 module.exports = function transformer(file, api) {
   const j = getParser(api);
@@ -222,22 +223,9 @@ module.exports = function transformer(file, api) {
   }
 
   // test helpers
-  code = j(code)
-    .find(j.Literal, { value: 'ember-test-helpers' })
-    .forEach(path => {
-      j(path).replaceWith(j.literal('@ember/test-helpers'));
-    })
-    .toSource();
+  code = replaceEmberTestHelpers(j, code);
   code = addImport(j, code, 'render', '@ember/test-helpers');
-  j(code)
-    .find(j.ImportDeclaration, { source: { value: 'ember-native-dom-helpers' } })
-    .forEach(path => {
-      path.value.specifiers.forEach(specifier => {
-        code = addImport(j, code, specifier.local.name, '@ember/test-helpers');
-      });
-    })
-    .toSource();
-  code = removeImport(j, code, 'ember-native-dom-helpers');
+  code = convertEmberTestHelpers(j, code);
 
   if (j(code).find(j.Literal, { value: 'ember-test-helpers/wait' }).length) {
     code = removeImport(j, code, 'ember-test-helpers/wait');
