@@ -196,6 +196,28 @@ module.exports = function transformer(file, api) {
             );
             path.value.async = false;
           });
+
+        j(path)
+          .find(j.ExpressionStatement, {
+            expression: {
+              type: 'AwaitExpression',
+              argument: {
+                type: 'CallExpression',
+                callee: {
+                  type: 'Identifier',
+                  name: 'render',
+                },
+              },
+            },
+          })
+          .forEach(path => {
+            j(path).replaceWith(
+              j.returnStatement(
+                j.callExpression(j.identifier('render'), path.value.expression.argument.arguments),
+              ),
+            );
+            path.value.async = false;
+          });
       })
       .toSource();
   } else {
