@@ -166,7 +166,7 @@ module.exports = function transformer(file, api) {
         j(path)
           .closest(j.FunctionExpression)
           .forEach(path => {
-            path.value.async = false;
+            path.value.async = true;
           });
       })
       .toSource();
