@@ -14,6 +14,7 @@ const {
 const { getNotificationServiceFunctions } = require('../../utils/notifications');
 const { removeEmptyBlock } = require('../../utils/general');
 const { getRenderingCollection, replaceSurroundingContext } = require('../../utils/rendering');
+const { setupFactoryGuy } = require('../../utils/factoryguy');
 
 module.exports = function transformer(file, api) {
   const j = getParser(api);
@@ -103,33 +104,7 @@ module.exports = function transformer(file, api) {
   }
 
   // factory guy
-  if (j(code).find(j.Literal, { value: 'ember-data-factory-guy' }).length) {
-    code = addImport(j, code, 'setupFactoryGuy', 'ember-data-factory-guy');
-    code = removeSpecificImport(j, code, 'manualSetup');
-    code = findExpressionStatementCallExpression(j, code, 'manualSetup')
-      .remove()
-      .toSource();
-    code = findExpressionStatementCallExpression(j, code, 'setupFactoryGuy')
-      .remove()
-      .toSource();
-    code = j(code)
-      .find(j.ExpressionStatement, {
-        expression: {
-          type: 'CallExpression',
-          callee: {
-            type: 'Identifier',
-            name: 'setupRenderingTest',
-          },
-        },
-      })
-      .forEach(path => {
-        // hacky way to avoid https://github.com/facebook/jscodeshift/issues/185
-        j(path).replaceWith(
-          j.expressionStatement(j.identifier('setupRenderingTest(hooks);\nsetupFactoryGuy(hooks)')),
-        );
-      })
-      .toSource();
-  }
+  code = setupFactoryGuy(j, code, 'setupRenderingTest');
 
   // rendering
   code = replaceSurroundingContext(j, code);
