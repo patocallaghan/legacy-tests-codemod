@@ -6,7 +6,11 @@ module('some module', function(hooks) {
 
   test('assert.elementCount', async function(assert) {
     await visit('/developer-signup');
-    assert.dom(selectors.articleShow.table.userRows).exists({ count: 10 });
-    assert.dom(selectors.articleShow.table.userRows).exists({ count: 10 }, 'some element');
+    assert.dom(selectors.articleShow.table.userRows).exists({
+      count: 10
+    });
+    assert.dom(selectors.articleShow.table.userRows).exists({
+      count: 10
+    }, 'some element');
   });
 });
