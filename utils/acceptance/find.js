@@ -1,4 +1,28 @@
-function find(j, code, someParam) {}
+function find(j, code) {
+  let hasFindImport = Boolean(
+    j(code).find(j.ImportSpecifier, { imported: { name: 'find' } }).length,
+  );
+  const comment = j.commentLine(
+    'TEST MIGRATION HINT: You have an ambiguous use of `find` here. As you have not imported it you are using `window.find`. Instead you should import `find` to select a single element or `findAll` for multiple elements from `@ember/test-helpers`',
+    true,
+    false,
+  );
+  return j(code)
+    .find(j.CallExpression, { callee: { name: 'find' } })
+    .forEach(path => {
+      if (!hasFindImport) {
+        let ancestor = closestAncestorOfType(path, /ExpressionStatement|VariableDeclaration/);
+        const comments = (ancestor.node.comments = ancestor.node.comments || []);
+        let hasHint = comments.find(c =>
+          c.value.includes('You have an ambiguous use of `find` here'),
+        );
+        if (!hasHint) {
+          comments.push(comment);
+        }
+      }
+    })
+    .toSource();
+}
 
 function closestAncestorOfType(path, typeRegex) {
   let current = path.parentPath;
