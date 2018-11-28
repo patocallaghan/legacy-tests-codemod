@@ -69,7 +69,6 @@ module.exports = function transformer(file, api) {
     j,
     code,
     'mockAppServiceWithApp',
-    [j.thisExpression(), j.identifier('app')],
     'embercom/tests/helpers/mock',
   );
 
@@ -78,7 +77,6 @@ module.exports = function transformer(file, api) {
     j,
     code,
     'mockAttributeServiceWithApp',
-    [j.thisExpression(), j.identifier('app')],
     'embercom/tests/helpers/mock',
   );
 
