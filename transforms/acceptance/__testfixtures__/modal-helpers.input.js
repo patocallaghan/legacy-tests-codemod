@@ -1,11 +1,10 @@
 import { setupApplicationTest } from 'ember-qunit';
 import { visit } from '@ember/test-helpers';
-import { assertModalHeader, closeModal } from 'embercom/tests/helpers/modal';
 
-module('some module', function(hooks) {
+module('some module', function (hooks) {
   setupApplicationTest(hooks);
 
-  test('test', async function(assert) {
+  test('test', async function (assert) {
     visit('/some/route');
     await closeModal();
     assertModalHeader(assert, 'Delete Intercom workspace');

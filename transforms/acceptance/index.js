@@ -90,6 +90,17 @@ module.exports = function transformer(file, api) {
     .toSource();
   code = removeImport(j, code, 'ember-native-dom-helpers');
 
+  // addImport for assertModalHeader
+  if (j(code).find(j.Identifier, { name: 'assertModalHeader' }).length) {
+    code = addImport(j, code, 'assertModalHeader', 'embercom/tests/helpers/modal');
+  }
+
+  // addImport for closeModal
+  if (j(code).find(j.Identifier, { name: 'closeModal' }).length) {
+    code = addImport(j, code, 'closeModal', 'embercom/tests/helpers/modal');
+  }
+
+
   // factory guy
   code = setupFactoryGuy(j, code, 'setupApplicationTest');
 
