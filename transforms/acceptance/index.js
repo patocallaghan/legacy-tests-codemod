@@ -7,6 +7,7 @@ const { trackingPageEventMigration } = require('./tracking_page_event_migration'
 const { setupFactoryGuy } = require('../../utils/factoryguy');
 const { removeEmptyBlock } = require('../../utils/general');
 const { replaceConst } = require('../../utils/const');
+const { transformAssertCurrentRoute } = require('../../utils/acceptance/custom-qunit-helpers');
 
 module.exports = function transformer(file, api) {
   const j = getParser(api);
@@ -100,6 +101,9 @@ module.exports = function transformer(file, api) {
   if (j(code).find(j.Identifier, { name: 'closeModal' }).length) {
     code = addImport(j, code, 'closeModal', 'embercom/tests/helpers/modal');
   }
+
+  // assert.currentRoute to assert.equal(currentRouteName(), ...)
+  code = transformAssertCurrentRoute(j, code);
 
   // factory guy
   code = setupFactoryGuy(j, code, 'setupApplicationTest');
