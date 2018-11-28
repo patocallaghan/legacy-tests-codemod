@@ -6,6 +6,7 @@ const { replaceIdentifier } = require('../../utils/identifier');
 const { trackingPageEventMigration } = require('./tracking_page_event_migration');
 const { setupFactoryGuy } = require('../../utils/factoryguy');
 const { removeEmptyBlock } = require('../../utils/general');
+const { replaceConst } = require('../../utils/const');
 
 module.exports = function transformer(file, api) {
   const j = getParser(api);
@@ -100,12 +101,12 @@ module.exports = function transformer(file, api) {
     code = addImport(j, code, 'closeModal', 'embercom/tests/helpers/modal');
   }
 
-
   // factory guy
   code = setupFactoryGuy(j, code, 'setupApplicationTest');
 
   // general
   code = removeEmptyBlock(j, code);
+  code = replaceConst(j, code, 'SELECTORS');
 
   return code;
 };
