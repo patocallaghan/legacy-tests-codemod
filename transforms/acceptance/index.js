@@ -1,6 +1,6 @@
 const { getParser } = require('codemod-cli').jscodeshift;
 const { exampleTransform } = require('../../utils/acceptance/example-transform');
-const { removeImport } = require('../../utils/imports');
+const { removeImport, addImport } = require('../../utils/imports');
 const { findCallExpression } = require('../../utils/function');
 const { replaceIdentifier } = require('../../utils/identifier');
 
@@ -19,6 +19,11 @@ module.exports = function transformer(file, api) {
       j(path).replaceWith(j.identifier("this.owner.lookup('service:store')"));
     })
     .toSource();
+
+  // addImport for openSettingsMenu
+  if (j(code).find(j.Identifier, { name: 'openSettingsMenu' }).length) {
+    code = addImport(j, code, 'openSettingsMenu', 'embercom/tests/helpers/settings-menu');
+  }
 
   // register and inject helpers
   code = j(code)
