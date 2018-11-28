@@ -12,7 +12,7 @@ module('some module', function(hooks) {
   test('Visiting developer sign up tracks an event', async function(assert) {
     await visit('/developer-signup');
     await click(selectors.saveNameOrEmail);
-    // TEST MIGRATION TIP: If the notification isn't a success notification try `assertErrorNotification` or `assertWarningNotification` instead
+    //TEST MIGRATION HINT: If the notification isn't a success notification try `assertErrorNotification` or `assertWarningNotification` instead
     assertSuccessNotification(assert, 'Your settings were successfully updated');
   });
 });
