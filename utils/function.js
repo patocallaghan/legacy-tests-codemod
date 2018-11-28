@@ -18,38 +18,26 @@ function findExpressionStatementCallExpression(j, code, functionName) {
 
 function findCallExpression(j, code, functionName) {
   return j(code).find(j.CallExpression, {
-      callee: {
-        type: 'Identifier',
-        name: functionName,
-      },
-    });
+    callee: {
+      type: 'Identifier',
+      name: functionName,
+    },
+  });
 }
 
 function replaceContextualFunctionWithExplicitlyImportedFunction(
   j,
   code,
   functionName,
-  functionArguments,
   importSource,
 ) {
-  var code = j(code)
-    .find(j.ExpressionStatement, {
-      expression: {
-        type: 'CallExpression',
-        callee: {
-          type: 'MemberExpression',
-          object: {
-            type: 'ThisExpression',
-          },
-          property: {
-            name: functionName,
-          },
-        },
-      },
-    })
+  var code = findContextualFunction(j, code, functionName)
     .forEach(path => {
+      path.value.expression.arguments.unshift(j.thisExpression());
       j(path).replaceWith(
-        j.expressionStatement(j.callExpression(j.identifier(functionName), functionArguments)),
+        j.expressionStatement(
+          j.callExpression(j.identifier(functionName), path.value.expression.arguments),
+        ),
       );
     })
     .toSource();
@@ -57,6 +45,23 @@ function replaceContextualFunctionWithExplicitlyImportedFunction(
     code = addImport(j, code, functionName, importSource);
   }
   return code;
+}
+
+function findContextualFunction(j, code, functionName) {
+  return j(code).find(j.ExpressionStatement, {
+    expression: {
+      type: 'CallExpression',
+      callee: {
+        type: 'MemberExpression',
+        object: {
+          type: 'ThisExpression',
+        },
+        property: {
+          name: functionName,
+        },
+      },
+    },
+  });
 }
 
 module.exports = {
