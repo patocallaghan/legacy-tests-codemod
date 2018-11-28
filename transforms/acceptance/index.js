@@ -23,6 +23,11 @@ module.exports = function transformer(file, api) {
     })
     .toSource();
 
+  // addImport for openSettingsMenu
+  if (j(code).find(j.Identifier, { name: 'openSettingsMenu' }).length) {
+    code = addImport(j, code, 'openSettingsMenu', 'embercom/tests/helpers/settings-menu');
+  }
+
   // register and inject helpers
   code = j(code)
     .find(j.MemberExpression, {
