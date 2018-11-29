@@ -75,13 +75,36 @@ function transformAssertVisible(j, code) {
     .forEach(path => {
       let selectorArg = [path.value.arguments[0]];
       let textArg = path.value.arguments[1] ? [path.value.arguments[1]] : [];
-      console.log(textArg);
       let assertDomExpression = j.callExpression(
         j.memberExpression(j.identifier('assert'), j.identifier('dom')),
         selectorArg,
       );
-      let existsExpression = j.memberExpression(assertDomExpression, j.identifier('isVisible'));
-      let wholeStatement = j.callExpression(existsExpression, textArg);
+      let isVisibleExpression = j.memberExpression(assertDomExpression, j.identifier('isVisible'));
+      let wholeStatement = j.callExpression(isVisibleExpression, textArg);
+      j(path).replaceWith(wholeStatement);
+    })
+    .toSource();
+}
+
+function transformAssertHasText(j, code) {
+  return j(code)
+    .find(j.CallExpression, {
+      callee: {
+        object: { name: 'assert' },
+        property: { name: 'hasText' },
+      },
+    })
+    .forEach(path => {
+      let expectedText = path.value.arguments[0];
+      let selectorArg = [path.value.arguments[1]];
+      let failureMessage = path.value.arguments[2];
+      let assertDomExpression = j.callExpression(
+        j.memberExpression(j.identifier('assert'), j.identifier('dom')),
+        selectorArg,
+      );
+      let hasTextExpression = j.memberExpression(assertDomExpression, j.identifier('hasText'));
+      let hasTextArgs = failureMessage ? [expectedText, failureMessage] : [expectedText];
+      let wholeStatement = j.callExpression(hasTextExpression, hasTextArgs);
       j(path).replaceWith(wholeStatement);
     })
     .toSource();
@@ -91,4 +114,5 @@ module.exports = {
   transformAssertCurrentRoute,
   transformAssertElementCount,
   transformAssertVisible,
+  transformAssertHasText,
 };
