@@ -1,5 +1,20 @@
 const { addImport } = require('../imports');
 
+// eg. assert.dom(selector).someDomAssertion(..args);
+function domAssertionExpression(j, selector, domAssertionName, args) {
+  let assertDomExpression = j.callExpression(
+    j.memberExpression(j.identifier('assert'), j.identifier('dom')),
+    [selector],
+  );
+
+  let domAssertionMemberExpression = j.memberExpression(
+    assertDomExpression,
+    j.identifier(domAssertionName),
+  );
+
+  return j.callExpression(domAssertionMemberExpression, args);
+}
+
 // assert.currentRoute to assert.equal(currentRouteName(), ...)
 function transformAssertCurrentRoute(j, code) {
   let internalCode = code;
@@ -35,26 +50,21 @@ function transformAssertElementCount(j, code) {
   return j(code)
     .find(j.CallExpression, {
       callee: {
-        object: {
-          name: 'assert',
-        },
-        property: {
-          name: 'elementCount',
-        },
+        object: { name: 'assert' },
+        property: { name: 'elementCount' },
       },
     })
     .forEach(path => {
-      let selectorArg = path.value.arguments[0];
+      let selector = path.value.arguments[0];
       let countProperty = j.property('init', j.identifier('count'), path.value.arguments[1]);
       let additionalArgs = path.value.arguments.slice(2);
-      let assertDomExpression = j.memberExpression(j.identifier('assert'), j.identifier('dom'));
-      let selectorExpression = j.callExpression(assertDomExpression, [selectorArg]);
-      let existsExpression = j.memberExpression(selectorExpression, j.identifier('exists'));
-      let wholeStatement = j.callExpression(existsExpression, [
-        j.objectExpression([countProperty]),
-        ...additionalArgs,
-      ]);
-      j(path).replaceWith(wholeStatement);
+
+      j(path).replaceWith(
+        domAssertionExpression(j, selector, 'exists', [
+          j.objectExpression([countProperty]),
+          ...additionalArgs,
+        ]),
+      );
     })
     .toSource();
 }
@@ -64,28 +74,19 @@ function transformAssertVisible(j, code) {
   return j(code)
     .find(j.CallExpression, {
       callee: {
-        object: {
-          name: 'assert',
-        },
-        property: {
-          name: 'visible',
-        },
+        object: { name: 'assert' },
+        property: { name: 'visible' },
       },
     })
     .forEach(path => {
-      let selectorArg = [path.value.arguments[0]];
+      let selector = path.value.arguments[0];
       let textArg = path.value.arguments[1] ? [path.value.arguments[1]] : [];
-      let assertDomExpression = j.callExpression(
-        j.memberExpression(j.identifier('assert'), j.identifier('dom')),
-        selectorArg,
-      );
-      let isVisibleExpression = j.memberExpression(assertDomExpression, j.identifier('isVisible'));
-      let wholeStatement = j.callExpression(isVisibleExpression, textArg);
-      j(path).replaceWith(wholeStatement);
+      j(path).replaceWith(domAssertionExpression(j, selector, 'isVisible', textArg));
     })
     .toSource();
 }
 
+// assert.hasText to assert.dom(...).hasText(..
 function transformAssertHasText(j, code) {
   return j(code)
     .find(j.CallExpression, {
@@ -96,23 +97,36 @@ function transformAssertHasText(j, code) {
     })
     .forEach(path => {
       let expectedText = path.value.arguments[0];
-      let selectorArg = [path.value.arguments[1]];
+      let selector = path.value.arguments[1];
       let failureMessage = path.value.arguments[2];
-      let assertDomExpression = j.callExpression(
-        j.memberExpression(j.identifier('assert'), j.identifier('dom')),
-        selectorArg,
-      );
-      let hasTextExpression = j.memberExpression(assertDomExpression, j.identifier('hasText'));
       let hasTextArgs = failureMessage ? [expectedText, failureMessage] : [expectedText];
-      let wholeStatement = j.callExpression(hasTextExpression, hasTextArgs);
-      j(path).replaceWith(wholeStatement);
+      j(path).replaceWith(domAssertionExpression(j, selector, 'hasText', hasTextArgs));
+    })
+    .toSource();
+}
+
+// assert.notPresent to assert.dom(...).doesNotExist(...
+function transformAssertNotPresent(j, code) {
+  return j(code)
+    .find(j.CallExpression, {
+      callee: {
+        object: { name: 'assert' },
+        property: { name: 'notPresent' },
+      },
+    })
+    .forEach(path => {
+      let selector = path.value.arguments[0];
+      let failureMessageArg = path.value.arguments[1] ? [path.value.arguments[1]] : [];
+      j(path).replaceWith(domAssertionExpression(j, selector, 'doesNotExist', failureMessageArg));
     })
     .toSource();
 }
 
 module.exports = {
+  domAssertionExpression,
   transformAssertCurrentRoute,
   transformAssertElementCount,
   transformAssertVisible,
   transformAssertHasText,
+  transformAssertNotPresent,
 };

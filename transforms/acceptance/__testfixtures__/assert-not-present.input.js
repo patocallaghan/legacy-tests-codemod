@@ -6,7 +6,7 @@ module('some module', function(hooks) {
 
   test('assert.notPresent', async function(assert) {
     await visit('/developer-signup');
-    assert.dom(SELECTORS.banner.title).doesNotExist();
-    assert.dom(SELECTORS.banner.title).doesNotExist('message');
+    assert.notPresent(selectors.banner.title);
+    assert.notPresent(selectors.banner.title, 'message');
   });
 });
