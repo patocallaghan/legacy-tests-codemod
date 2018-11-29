@@ -10,6 +10,7 @@ const { replaceConst } = require('../../utils/const');
 const {
   transformAssertCurrentRoute,
   transformAssertElementCount,
+  transformAssertVisible,
 } = require('../../utils/acceptance/custom-qunit-helpers');
 
 module.exports = function transformer(file, api) {
@@ -108,6 +109,7 @@ module.exports = function transformer(file, api) {
   // migrate Custom QUnit helpers
   code = transformAssertCurrentRoute(j, code);
   code = transformAssertElementCount(j, code);
+  code = transformAssertVisible(j, code);
 
   // factory guy
   code = setupFactoryGuy(j, code, 'setupApplicationTest');
