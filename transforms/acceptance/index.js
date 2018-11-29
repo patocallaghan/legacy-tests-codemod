@@ -12,6 +12,7 @@ const {
   transformAssertElementCount,
   transformAssertVisible,
   transformAssertHasText,
+  transformAssertNotPresent,
 } = require('../../utils/acceptance/custom-qunit-helpers');
 
 module.exports = function transformer(file, api) {
@@ -112,6 +113,7 @@ module.exports = function transformer(file, api) {
   code = transformAssertElementCount(j, code);
   code = transformAssertVisible(j, code);
   code = transformAssertHasText(j, code);
+  code = transformAssertNotPresent(j, code);
 
   // factory guy
   code = setupFactoryGuy(j, code, 'setupApplicationTest');
