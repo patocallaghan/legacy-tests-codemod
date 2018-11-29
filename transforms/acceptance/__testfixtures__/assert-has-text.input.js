@@ -6,7 +6,7 @@ module('some module', function(hooks) {
 
   test('assert.hasText', async function(assert) {
     await visit('/developer-signup');
-    assert.hasText('Jan 1, 1970', SELECTORS.approvalCreatedAt);
-    assert.hasText('Jan 1, 1970', SELECTORS.approvalCreatedAt, 'some message');
+    assert.hasText('Jan 1, 1970', selectors.approvalCreatedAt);
+    assert.hasText('Jan 1, 1970', selectors.approvalCreatedAt, 'some message');
   });
 });

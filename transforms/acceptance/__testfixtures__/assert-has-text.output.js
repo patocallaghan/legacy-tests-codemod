@@ -6,7 +6,7 @@ module('some module', function(hooks) {
 
   test('assert.hasText', async function(assert) {
     await visit('/developer-signup');
-    assert.dom('Jan 1, 1970').hasText(SELECTORS.approvalCreatedAt);
-    assert.dom('Jan 1, 1970').hasText(SELECTORS.approvalCreatedAt, 'some message');
+    assert.dom(selectors.approvalCreatedAt).hasText('Jan 1, 1970');
+    assert.dom(selectors.approvalCreatedAt).hasText('Jan 1, 1970', 'some message');
   });
 });
