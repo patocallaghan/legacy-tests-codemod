@@ -84,6 +84,10 @@ module.exports = function transformer(file, api) {
 
   // test helpers
   code = replaceIdentifier(j, code, 'keyEvent', 'triggerKeyEvent');
+  code = replaceIdentifier(j, code, 'currentPath', 'currentRouteName');
+  if (j(code).find(j.Identifier, { name: 'currentRouteName' }).length) {
+    code = addImport(j, code, 'currentRouteName', '@ember/test-helpers');
+  }
   code = j(code)
     .find(j.Literal, { value: 'ember-test-helpers' })
     .forEach(path => {
@@ -116,7 +120,7 @@ module.exports = function transformer(file, api) {
   code = transformAssertVisible(j, code);
   code = transformAssertHasText(j, code);
   code = transformAssertNotPresent(j, code);
-  
+
   code = findWithAssert(j, code);
   code = find(j, code);
 
@@ -126,8 +130,8 @@ module.exports = function transformer(file, api) {
   // general
   code = removeEmptyBlock(j, code);
   code = replaceConst(j, code, 'SELECTORS');
-  
+
   code = warnjQuerySelector(j, code);
-  
+
   return code;
 };
