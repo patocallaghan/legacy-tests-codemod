@@ -6,6 +6,7 @@ const { replaceIdentifier } = require('../../utils/identifier');
 const { trackingPageEventMigration } = require('./tracking_page_event_migration');
 const { setupFactoryGuy } = require('../../utils/factoryguy');
 const { removeEmptyBlock } = require('../../utils/general');
+const { find, findWithAssert } = require('../../utils/acceptance/find');
 const { replaceConst } = require('../../utils/const');
 const {
   transformAssertCurrentRoute,
@@ -114,6 +115,9 @@ module.exports = function transformer(file, api) {
   code = transformAssertVisible(j, code);
   code = transformAssertHasText(j, code);
   code = transformAssertNotPresent(j, code);
+  
+  code = findWithAssert(j, code);
+  code = find(j, code);
 
   // factory guy
   code = setupFactoryGuy(j, code, 'setupApplicationTest');
