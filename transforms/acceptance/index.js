@@ -7,6 +7,7 @@ const { trackingPageEventMigration } = require('./tracking_page_event_migration'
 const { setupFactoryGuy } = require('../../utils/factoryguy');
 const { removeEmptyBlock } = require('../../utils/general');
 const { find, findWithAssert } = require('../../utils/acceptance/find');
+const { warnjQuerySelector } = require('../../utils/warn-jquery-selector');
 const { replaceConst } = require('../../utils/const');
 const {
   transformAssertCurrentRoute,
@@ -125,6 +126,8 @@ module.exports = function transformer(file, api) {
   // general
   code = removeEmptyBlock(j, code);
   code = replaceConst(j, code, 'SELECTORS');
-
+  
+  code = warnjQuerySelector(j, code);
+  
   return code;
 };
