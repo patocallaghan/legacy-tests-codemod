@@ -15,6 +15,7 @@ const { getNotificationServiceFunctions } = require('../../utils/notifications')
 const { removeEmptyBlock } = require('../../utils/general');
 const { getRenderingCollection, replaceSurroundingContext } = require('../../utils/rendering');
 const { setupFactoryGuy } = require('../../utils/factoryguy');
+const { warnjQuerySelector } = require('../../utils/warn-jquery-selector');
 
 module.exports = function transformer(file, api) {
   const j = getParser(api);
@@ -289,6 +290,9 @@ module.exports = function transformer(file, api) {
       })
       .toSource();
   }
+
+  //hints
+  code = warnjQuerySelector(j, code);
 
   // general
   code = removeEmptyBlock(j, code);
