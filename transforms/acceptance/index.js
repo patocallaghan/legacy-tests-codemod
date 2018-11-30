@@ -1,7 +1,10 @@
 const { getParser } = require('codemod-cli').jscodeshift;
 const { exampleTransform } = require('../../utils/acceptance/example-transform');
 const { removeImport, addImport } = require('../../utils/imports');
-const { findCallExpression } = require('../../utils/function');
+const {
+  findCallExpression,
+  findExpressionStatementCallExpression,
+} = require('../../utils/function');
 const { replaceIdentifier } = require('../../utils/identifier');
 const { trackingPageEventMigration } = require('./tracking_page_event_migration');
 const { setupFactoryGuy } = require('../../utils/factoryguy');
@@ -103,6 +106,12 @@ module.exports = function transformer(file, api) {
     })
     .toSource();
   code = removeImport(j, code, 'ember-native-dom-helpers');
+
+  code = findExpressionStatementCallExpression(j, code, 'andThenIgnoreTimers')
+    .forEach(path => {
+      j(path).replaceWith(path.value.expression.arguments[0].body.body);
+    })
+    .toSource();
 
   // addImport for assertModalHeader
   if (j(code).find(j.Identifier, { name: 'assertModalHeader' }).length) {
