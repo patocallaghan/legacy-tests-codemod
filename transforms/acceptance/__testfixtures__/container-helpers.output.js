@@ -5,7 +5,7 @@ import {
   getAdmin,
   getCurrentController,
   getCurrentRoute,
-} from 'embercom/tests/helpers/container-helpers';
+} from "embercom/tests/helpers/container-helpers";
 
 module('some module', function(hooks) {
   setupApplicationTest(hooks);
@@ -19,7 +19,7 @@ module('some module', function(hooks) {
   test('getApp', async function(assert) {
     await visit('/developer-signup');
 
-    let admin = getApp();
+    let app = getApp();
   });
 
   test('getCurrentController', async function(assert) {

@@ -6,6 +6,7 @@ const {
   findExpressionStatementCallExpression,
 } = require('../../utils/function');
 const { replaceIdentifier } = require('../../utils/identifier');
+const { replaceLiteral } = require('../../utils/literal');
 const { trackingPageEventMigration } = require('./tracking_page_event_migration');
 const { setupFactoryGuy } = require('../../utils/factoryguy');
 const { removeEmptyBlock } = require('../../utils/general');
@@ -139,6 +140,18 @@ module.exports = function transformer(file, api) {
   // general
   code = removeEmptyBlock(j, code);
   code = replaceConst(j, code, 'SELECTORS');
+  code = replaceLiteral(
+    j,
+    code,
+    'embercom/tests/helpers/acceptance',
+    'embercom/tests/helpers/container-helpers',
+  );
+  code = replaceLiteral(
+    j,
+    code,
+    'embercom/tests/helpers/legacy/acceptance/articles/collections-helpers',
+    'embercom/tests/helpers/app/educate/collections-helpers',
+  );
 
   code = warnjQuerySelector(j, code);
 
