@@ -14,4 +14,4 @@ import {
   getSectionIdBySelector,
   getSectionByName,
   deleteCollection,
-} from 'embercom/tests/helpers/app/educate/collections-helpers';
+} from "embercom/tests/helpers/app/educate/collections-helpers";
