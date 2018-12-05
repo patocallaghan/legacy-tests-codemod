@@ -9,5 +9,4 @@ module("Team Messages | Component | message-editor/title/header-component", func
   test('A message with a folder', function(assert) {
     renderComponent(this, { message });
   });
-
 });

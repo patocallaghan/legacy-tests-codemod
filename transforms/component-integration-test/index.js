@@ -23,7 +23,7 @@ module.exports = function transformer(file, api) {
   let code = file.source;
 
   // remove unused imports
-  code = removeImport(j, code, 'embercom/tests/helpers/component-integration-testing');
+  code = removeImport(j, code, 'embercom/tests/helpers/legacy/component-integration-testing');
   // add imports
   code = addImport(j, code, 'module', 'qunit');
   code = addImport(j, code, 'test', 'qunit');
