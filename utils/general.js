@@ -20,6 +20,18 @@ function removeEmptyBlock(j, code) {
     .toSource();
 }
 
+function findRunFunctions(j, code) {
+  return j(code).find(j.ExpressionStatement, {
+    expression: {
+      type: 'CallExpression',
+      callee: {
+        name: 'run',
+      },
+    },
+  });
+}
+
 module.exports = {
   removeEmptyBlock,
+  findRunFunctions,
 };
