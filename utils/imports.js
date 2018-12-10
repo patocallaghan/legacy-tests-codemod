@@ -2,6 +2,7 @@ function addImport(j, code, importName, sourceName) {
   let hasImport = false;
   code = j(code)
     .find(j.ImportDeclaration, { source: { value: sourceName } })
+    .at(0)
     .forEach(statement => {
       if (statement.value.source.value === sourceName) {
         let existingImports = statement.value.specifiers.map(s => s.imported.name);
@@ -64,6 +65,20 @@ function replaceImportedFunction(j, code, name, newName, newSource) {
   }
   return code;
 }
+
+// let importLocations = {};
+// code = j(code)
+//   .find(j.ImportDeclaration)
+//   .forEach(path => {
+//     let specifiers = path.value.specifiers.map(spec => spec.local.name);
+//     if (importLocations[path.value.source.value] === undefined) {
+//       importLocations[path.value.source.value] = specifiers;
+//     } else {
+//       importLocations[path.value.source.value].push(...specifiers);
+//     }
+//     j(path).remove();
+//   })
+//   .toSource();
 
 module.exports = {
   addImport,

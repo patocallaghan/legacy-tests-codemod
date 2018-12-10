@@ -12,8 +12,12 @@ const {
   replaceContextualFunctionWithExplicitlyImportedFunction,
 } = require('../../utils/function');
 const { getNotificationServiceFunctions } = require('../../utils/notifications');
-const { removeEmptyBlock } = require('../../utils/general');
-const { getRenderingCollection, replaceSurroundingContext } = require('../../utils/rendering');
+const { removeEmptyBlock, findRunFunctions } = require('../../utils/general');
+const {
+  removeRenderWrapping,
+  getRenderingCollection,
+  replaceSurroundingContext,
+} = require('../../utils/rendering');
 const { setupFactoryGuy } = require('../../utils/factoryguy');
 const { warnjQuerySelector } = require('../../utils/warn-jquery-selector');
 
@@ -21,6 +25,10 @@ module.exports = function transformer(file, api) {
   const j = getParser(api);
 
   let code = file.source;
+
+  // cleanup run functions
+  let runFunctions = findRunFunctions(j, code);
+  code = removeRenderWrapping(j, code, runFunctions);
 
   // remove unused imports
   code = removeImport(j, code, 'embercom/tests/helpers/legacy/component-integration-testing');
