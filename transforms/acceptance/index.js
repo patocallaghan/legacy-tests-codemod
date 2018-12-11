@@ -152,6 +152,12 @@ module.exports = function transformer(file, api) {
     'embercom/tests/helpers/legacy/acceptance/articles/collections-helpers',
     'embercom/tests/helpers/app/educate/collections-helpers',
   );
+  code = replaceLiteral(
+    j,
+    code,
+    'embercom/tests/helpers/legacy/acceptance/async-helpers/acceptance',
+    'embercom/tests/helpers/container-helpers',
+  );
 
   code = warnjQuerySelector(j, code);
 
