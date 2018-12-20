@@ -6,7 +6,7 @@ function removeRenderWrapping(j, code, runFunctions) {
         return;
       }
       let rendersComponent = runMethods.some(method => {
-        if (method.type != 'ExpressionStatement') {
+        if ((method.type != 'ExpressionStatement') || !method.expression.callee) {
           return false;
         }
 
